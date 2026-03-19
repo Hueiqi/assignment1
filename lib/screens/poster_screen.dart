@@ -11,35 +11,62 @@ class ResultScreen extends StatelessWidget {
 
   final Uint8List image;
   final EventSuggestion suggestion;
+  final Color primaryPink = const Color.fromARGB(255, 235, 114, 154);
 
   Widget _buildSection(String title, Widget child) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const SizedBox(height: 16),
-        Text(
-          title,
-          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-        ),
-        const SizedBox(height: 8),
-        child,
-      ],
+    return Container(
+      margin: const EdgeInsets.only(top: 16),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            title,
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: primaryPink,
+            ),
+          ),
+          const Divider(),
+          const SizedBox(height: 8),
+          child,
+        ],
+      ),
     );
   }
 
   Widget _buildBulletList(List<String> items) {
+    if (items.isEmpty) {
+      return Text(
+        'No items available.',
+        style: TextStyle(fontSize: 15, color: Colors.grey.shade500),
+      );
+    }
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: items
           .map(
             (item) => Padding(
-              padding: const EdgeInsets.symmetric(vertical: 2.0),
+              padding: const EdgeInsets.symmetric(vertical: 4.0),
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text('• ', style: TextStyle(fontSize: 16)),
+                  Icon(Icons.check_circle, size: 18, color: primaryPink),
+                  const SizedBox(width: 8),
                   Expanded(
-                    child: Text(item, style: const TextStyle(fontSize: 16)),
+                    child: Text(item, style: const TextStyle(fontSize: 15)),
                   ),
                 ],
               ),
@@ -51,12 +78,26 @@ class ResultScreen extends StatelessWidget {
 
   Widget _buildKeyValueRow(String label, String value) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 2.0),
+      padding: const EdgeInsets.symmetric(vertical: 4.0),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('$label: ', style: const TextStyle(fontWeight: FontWeight.bold)),
-          Expanded(child: Text(value)),
+          SizedBox(
+            width: 110,
+            child: Text(
+              '$label:',
+              style: const TextStyle(
+                fontWeight: FontWeight.bold,
+                color: Colors.black54,
+              ),
+            ),
+          ),
+          Expanded(
+            child: Text(
+              value,
+              style: const TextStyle(fontWeight: FontWeight.w500),
+            ),
+          ),
         ],
       ),
     );
@@ -65,29 +106,39 @@ class ResultScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.grey[50],
       appBar: AppBar(
-        backgroundColor: const Color.fromARGB(255, 182, 122, 211),
+        backgroundColor: primaryPink,
         foregroundColor: Colors.white,
-        title: const Text('EVENT PLAN RESULTS'),
+        title: const Text(
+          'Your Event Plan',
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
+        elevation: 0,
       ),
       body: SingleChildScrollView(
         child: Padding(
-          padding: const EdgeInsets.all(12.0),
+          padding: const EdgeInsets.all(16.0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
+              // Task 2.4: Display AI-generated poster
               ClipRRect(
-                borderRadius: BorderRadius.circular(8),
+                borderRadius: BorderRadius.circular(16),
                 child: Image.memory(
                   image,
                   fit: BoxFit.cover,
                   errorBuilder: (context, error, stackTrace) =>
-                      const Icon(Icons.error),
+                      const Center(child: Icon(Icons.broken_image, size: 50)),
                 ),
               ),
+              // Task 3.4 + Task 4: Display AI-generated suggestions
               _buildSection(
                 'Summary',
-                Text(suggestion.summary, style: const TextStyle(fontSize: 16)),
+                Text(
+                  suggestion.summary,
+                  style: const TextStyle(fontSize: 15, height: 1.4),
+                ),
               ),
               _buildSection(
                 'Event Details',
@@ -107,16 +158,14 @@ class ResultScreen extends StatelessWidget {
                     ),
                     _buildKeyValueRow(
                       'Budget',
-                      'RM${suggestion.budgetRM.toStringAsFixed(0)}',
+                      'RM ${suggestion.budgetRM.toStringAsFixed(2)}',
                     ),
                   ],
                 ),
               ),
               _buildSection('Schedule', _buildBulletList(suggestion.schedule)),
-              _buildSection(
-                'Decor Suggestions',
-                _buildBulletList(suggestion.decor),
-              ),
+              _buildSection('Decor Ideas', _buildBulletList(suggestion.decor)),
+              const SizedBox(height: 24),
             ],
           ),
         ),

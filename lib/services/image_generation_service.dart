@@ -3,7 +3,7 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 
 class ImageGenerationService {
-  static const apiKey = "api_key_here";
+  static const apiKey = 'huggingface_api_key_here';
 
   static const apiUrl =
       "https://router.huggingface.co/hf-inference/models/stabilityai/stable-diffusion-xl-base-1.0";

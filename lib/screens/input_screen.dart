@@ -7,7 +7,6 @@ import 'poster_screen.dart';
 
 class InputScreen extends StatefulWidget {
   const InputScreen({super.key, required this.title});
-
   final String title;
 
   @override
@@ -21,7 +20,8 @@ class _InputScreenState extends State<InputScreen> {
   final TextEditingController durationController = TextEditingController();
   final TextEditingController budgetController = TextEditingController();
   final TextEditingController participantsController = TextEditingController();
-  final TextEditingController styleController = TextEditingController();
+
+  final Color primaryPink = const Color.fromARGB(255, 235, 114, 154);
 
   @override
   void dispose() {
@@ -31,7 +31,6 @@ class _InputScreenState extends State<InputScreen> {
     durationController.dispose();
     budgetController.dispose();
     participantsController.dispose();
-    styleController.dispose();
     super.dispose();
   }
 
@@ -39,29 +38,31 @@ class _InputScreenState extends State<InputScreen> {
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (context) => const Center(child: CircularProgressIndicator()),
+      builder: (context) =>
+          Center(child: CircularProgressIndicator(color: primaryPink)),
     );
 
     try {
       final String eventName = eventNameController.text.isNotEmpty
           ? eventNameController.text
-          : 'Summer Gala';
+          : 'Campus Fiesta';
       final String theme = themeController.text.isNotEmpty
           ? themeController.text
-          : 'Tech Talk';
+          : 'Student Gathering';
       final String location = locationController.text.isNotEmpty
           ? locationController.text
-          : 'Campus Hall';
+          : 'Main Hall';
       final int durationHours = int.tryParse(durationController.text) ?? 3;
-      final double budgetRM = double.tryParse(budgetController.text) ?? 1500.0;
+      final double budgetRM = double.tryParse(budgetController.text) ?? 500.0;
       final int participants = int.tryParse(participantsController.text) ?? 50;
-      final String style = styleController.text.isNotEmpty
-          ? styleController.text
-          : 'Modern';
 
+      // Task 2.1: Construct image prompt
       final String imagePrompt =
-          'A professional event poster for a $theme titled "$eventName" held at $location for $participants participants over $durationHours hours with a budget of RM${budgetRM.toStringAsFixed(0)}. Design style: $style.';
+          'A professional, modern event poster for a student $theme event titled '
+          '"$eventName" held at $location for $participants participants over '
+          '$durationHours hours. Bright, friendly campus life aesthetic.';
 
+      // Task 2.2 + 3.2: Call both APIs in parallel
       final results = await Future.wait([
         ImageGenerationService.generateImage(imagePrompt),
         SuggestionService.generateSuggestion(
@@ -74,11 +75,12 @@ class _InputScreenState extends State<InputScreen> {
         ),
       ]);
 
-      final image = results[0] as Uint8List;
+      // ✅ FIX: SuggestionService returns EventSuggestion directly now
+      final Uint8List image = results[0] as Uint8List;
       final EventSuggestion suggestion = results[1] as EventSuggestion;
 
       if (mounted) {
-        Navigator.pop(context); // Close loading indicator
+        Navigator.pop(context);
         Navigator.push(
           context,
           MaterialPageRoute(
@@ -90,112 +92,138 @@ class _InputScreenState extends State<InputScreen> {
     } catch (e) {
       if (mounted) {
         Navigator.pop(context);
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Failed to generate plan: $e')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Oops! Error: $e'),
+            backgroundColor: Colors.redAccent,
+          ),
+        );
       }
     }
+  }
+
+  Widget _buildFriendlyTextField({
+    required TextEditingController controller,
+    required String labelText,
+    required IconData icon,
+    TextInputType keyboardType = TextInputType.text,
+    List<TextInputFormatter>? inputFormatters,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 16.0),
+      child: TextField(
+        controller: controller,
+        keyboardType: keyboardType,
+        inputFormatters: inputFormatters,
+        decoration: InputDecoration(
+          labelText: labelText,
+          prefixIcon: Icon(icon, color: primaryPink),
+          filled: true,
+          // ignore: deprecated_member_use
+          fillColor: primaryPink.withOpacity(0.05),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(20),
+            // ignore: deprecated_member_use
+            borderSide: BorderSide(color: primaryPink.withOpacity(0.2)),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(20),
+            borderSide: BorderSide(color: primaryPink, width: 2),
+          ),
+          floatingLabelStyle: TextStyle(color: primaryPink),
+        ),
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white,
       appBar: AppBar(
-        backgroundColor: const Color.fromARGB(255, 235, 114, 154),
+        backgroundColor: primaryPink,
         foregroundColor: Colors.white,
-        title: Text(widget.title),
+        title: Text(
+          widget.title,
+          style: const TextStyle(fontWeight: FontWeight.bold),
+        ),
+        centerTitle: true,
+        elevation: 0,
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(bottom: Radius.circular(20)),
+        ),
       ),
       body: SingleChildScrollView(
         child: Padding(
-          padding: const EdgeInsets.all(20.0),
+          padding: const EdgeInsets.all(24.0),
           child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              TextField(
+              const Text(
+                "plan a campus event! ",
+                style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 24),
+              _buildFriendlyTextField(
                 controller: eventNameController,
-                decoration: const InputDecoration(
-                  labelText: 'Event Name',
-                  prefixIcon: Icon(Icons.event),
-                  border: OutlineInputBorder(),
-                ),
+                labelText: 'Event Name',
+                icon: Icons.celebration,
               ),
-              const SizedBox(height: 16),
-              TextField(
+              _buildFriendlyTextField(
                 controller: themeController,
-                decoration: const InputDecoration(
-                  labelText: 'Event Theme',
-                  prefixIcon: Icon(Icons.lightbulb),
-                  border: OutlineInputBorder(),
-                ),
+                labelText: 'Event Theme (e.g. Tech Talk)',
+                icon: Icons.lightbulb_outline,
               ),
-              const SizedBox(height: 16),
-              TextField(
+              _buildFriendlyTextField(
                 controller: locationController,
-                decoration: const InputDecoration(
-                  labelText: 'Event Location',
-                  prefixIcon: Icon(Icons.place),
-                  border: OutlineInputBorder(),
-                ),
+                labelText: 'Event Location (e.g. Hall, Outdoor)',
+                icon: Icons.place_outlined,
               ),
-              const SizedBox(height: 16),
-              TextField(
+              _buildFriendlyTextField(
                 controller: durationController,
+                labelText: 'Event Duration (hours)',
+                icon: Icons.timer_outlined,
                 keyboardType: TextInputType.number,
                 inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                decoration: const InputDecoration(
-                  labelText: 'Event Duration (hours)',
-                  prefixIcon: Icon(Icons.timer),
-                  border: OutlineInputBorder(),
-                ),
               ),
-              const SizedBox(height: 16),
-              TextField(
+              _buildFriendlyTextField(
                 controller: budgetController,
+                labelText: 'Event Budget (RM)',
+                icon: Icons.attach_money,
                 keyboardType: const TextInputType.numberWithOptions(
                   decimal: true,
                 ),
                 inputFormatters: [
                   FilteringTextInputFormatter.allow(RegExp(r'[0-9.]')),
                 ],
-                decoration: const InputDecoration(
-                  labelText: 'Event Budget (RM)',
-                  prefixIcon: Icon(Icons.attach_money),
-                  border: OutlineInputBorder(),
-                ),
               ),
-              const SizedBox(height: 16),
-              TextField(
+              _buildFriendlyTextField(
                 controller: participantsController,
+                labelText: 'Expected Participants',
+                icon: Icons.people_outline,
                 keyboardType: TextInputType.number,
                 inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                decoration: const InputDecoration(
-                  labelText: 'Expected Participants',
-                  prefixIcon: Icon(Icons.people),
-                  border: OutlineInputBorder(),
-                ),
               ),
-              const SizedBox(height: 16),
-              TextField(
-                controller: styleController,
-                decoration: const InputDecoration(
-                  labelText: 'Poster Style',
-                  prefixIcon: Icon(Icons.style),
-                  border: OutlineInputBorder(),
+              const SizedBox(height: 12),
+              ElevatedButton(
+                onPressed: _generateEventPlan,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: primaryPink,
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(30),
+                  ),
                 ),
-              ),
-              const SizedBox(height: 16),
-              SizedBox(
-                width: double.infinity,
-                height: 50,
-                child: MaterialButton(
-                  color: const Color.fromARGB(255, 216, 81, 81),
-                  onPressed: _generateEventPlan,
-                  child: const Text(
-                    'GENERATE EVENT PLAN',
-                    style: TextStyle(fontSize: 20, color: Colors.white),
+                child: const Text(
+                  'GENERATE PLAN',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
                   ),
                 ),
               ),
-              const SizedBox(height: 16),
             ],
           ),
         ),

@@ -9,8 +9,6 @@ class EventSuggestion {
     required this.summary,
     required this.schedule,
     required this.decor,
-    required this.foodAndBeverage,
-    required this.budgetBreakdown,
   });
 
   final String eventName;
@@ -22,11 +20,9 @@ class EventSuggestion {
   final String summary;
   final List<String> schedule;
   final List<String> decor;
-  final List<String> foodAndBeverage;
-  final Map<String, String> budgetBreakdown;
 
   factory EventSuggestion.fromJson(Map<String, dynamic> json) {
-    final event = json['event'] as Map<String, dynamic>? ?? {}; // fallback
+    final event = json['event'] as Map<String, dynamic>? ?? {};
 
     return EventSuggestion(
       eventName: event['name']?.toString() ?? '',
@@ -46,34 +42,6 @@ class EventSuggestion {
               ?.map((e) => e.toString())
               .toList() ??
           [],
-      foodAndBeverage:
-          (json['food_and_beverage'] as List<dynamic>?)
-              ?.map((e) => e.toString())
-              .toList() ??
-          [],
-      budgetBreakdown:
-          (json['budget_breakdown'] as Map<String, dynamic>?)?.map(
-            (key, value) => MapEntry(key, value?.toString() ?? ''),
-          ) ??
-          {},
     );
-  }
-
-  Map<String, dynamic> toJson() {
-    return {
-      'event': {
-        'name': eventName,
-        'theme': theme,
-        'location': location,
-        'duration_hours': durationHours,
-        'budget_rm': budgetRM,
-        'participants': participants,
-      },
-      'summary': summary,
-      'schedule': schedule,
-      'decor': decor,
-      'food_and_beverage': foodAndBeverage,
-      'budget_breakdown': budgetBreakdown,
-    };
   }
 }
