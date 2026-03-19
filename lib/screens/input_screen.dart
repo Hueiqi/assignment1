@@ -56,13 +56,11 @@ class _InputScreenState extends State<InputScreen> {
       final double budgetRM = double.tryParse(budgetController.text) ?? 500.0;
       final int participants = int.tryParse(participantsController.text) ?? 50;
 
-      // Task 2.1: Construct image prompt
       final String imagePrompt =
           'A professional, modern event poster for a student $theme event titled '
           '"$eventName" held at $location for $participants participants over '
           '$durationHours hours. Bright, friendly campus life aesthetic.';
 
-      // Task 2.2 + 3.2: Call both APIs in parallel
       final results = await Future.wait([
         ImageGenerationService.generateImage(imagePrompt),
         SuggestionService.generateSuggestion(
@@ -75,7 +73,6 @@ class _InputScreenState extends State<InputScreen> {
         ),
       ]);
 
-      // ✅ FIX: SuggestionService returns EventSuggestion directly now
       final Uint8List image = results[0] as Uint8List;
       final EventSuggestion suggestion = results[1] as EventSuggestion;
 
