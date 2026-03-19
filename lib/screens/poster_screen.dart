@@ -132,7 +132,6 @@ class ResultScreen extends StatelessWidget {
                       const Center(child: Icon(Icons.broken_image, size: 50)),
                 ),
               ),
-              // Task 3.4 + Task 4: Display AI-generated suggestions
               _buildSection(
                 'Summary',
                 Text(
